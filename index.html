@@ -10,57 +10,193 @@
 </head>
 
 <body>
-	<section class="todoapp">
-		<header class="header">
-			<h1>Orow's todos</h1>
-			<input class="new-todo" placeholder="What needs to be done?" autofocus>
-		</header>
-		<section class="main">
-			<input id="toggle-all" class="toggle-all" type="checkbox">
-			<label for="toggle-all">Mark all as complete</label>
-			<!-- <ul class="todo-list"></ul> -->
-			<ul class="todo-list">
-				<li data-id="d377bcdf-cc13-40de-8dd3-deccce2769ad">
-					<div class="view">
-						<input class="toggle" type="checkbox">
-						<label>task-active</label>
-						<button class="destroy"></button>
-					</div>
-					<input class="edit" value="task-active">
-				</li>
-				<li class="completed" data-id="fa0e439f-26b0-4233-94f1-96b46f21d46d">
-					<div class="view">
-						<input class="toggle" type="checkbox" checked="">
-						<label>task-completed</label>
-						<button class="destroy"></button>
-					</div>
-					<input class="edit" value="task-completed">
-				</li>
-			</ul>
-		</section>
-		<footer class="footer"></footer>
-		<footer class="footer">
-			<span class="todo-count"><strong>1</strong> item left</span>
-			<ul class="filters">
-				<li>
-					<a class="selected" href="#/all">All</a>
-				</li>
-				<li>
-					<a href="#/active">Active</a>
-				</li>
-				<li>
-					<a href="#/completed">Completed</a>
-				</li>
-			</ul>
-			<button class="clear-completed">Clear completed</button>
-		</footer>
-	</section>
+	<div id="app">
+		<section class="todoapp">
+			<header class="header">
+				<h1>Orow's todos</h1>
+				<input class="new-todo" type="text" v-model="inputVaule" @keyup.enter="add"
+					placeholder="What needs to be done?" autofocus>
+			</header>
+			<section class="main">
+				<input id="toggle-all" class="toggle-all" type="checkbox" @click="selectAll">
+				<label for="toggle-all">Mark all as complete</label>
+				<ul class="todo-list">
+					<template v-for="(item, index) in items">
+						<!-- <li class="editing" v-if="isEditing">
+							<input class="edit" :value="item.text">
+						</li> -->
+						<li :class="{completed: item.completed}" @dblclick="editing(index)">
+							<div class="view">
+								<input class="toggle" type="checkbox" v-model="item.completed"
+									@change="changeTodo(index)">
+								<label>{{item.text}}</label>
+								<button class="destroy" @click="removeTodo(index)"></button>
+							</div>
+							<input class="edit" :value="item.text">
+						</li>
 
+					</template>
+					<!-- 靜態內容 -->
+					<!-- <li data-id="d377bcdf-cc13-40de-8dd3-deccce2769ad">
+						<div class="view">
+							<input class="toggle" type="checkbox">
+							<label>task-active</label>
+							<button class="destroy"></button>
+						</div>
+						<input class="edit" value="task-active">
+					</li>
+					<li class="completed" data-id="fa0e439f-26b0-4233-94f1-96b46f21d46d">
+						<div class="view">
+							<input class="toggle" type="checkbox" checked="">
+							<label>task-completed</label>
+							<button class="destroy"></button>
+						</div>
+						<input class="edit" value="task-completed">
+					</li> -->
+				</ul>
+			</section>
+			<footer class="footer" v-if="items != ''">
+				<span class="todo-count"><strong>{{todoLen}}</strong> item left</span>
+				<ul class="filters">
+					<li>
+						<a href="#/all" :class="{selected: visibility == 'all'}">All</a>
+					</li>
+					<li>
+						<a href="#/active" :class="{selected: visibility == 'active'}">Active</a>
+					</li>
+					<li>
+						<a href="#/completed" :class="{selected: visibility == 'completed'}">Completed</a>
+					</li>
+				</ul>
+				<button class="clear-completed" @click="clearCompleted">Clear completed</button>
+			</footer>
+			<!-- <footer class="footer">
+				<span class="todo-count"><strong>1</strong> item left</span>
+				<ul class="filters">
+					<li>
+						<a class="selected" href="#/all">All</a>
+					</li>
+					<li>
+						<a href="#/active">Active</a>
+					</li>
+					<li>
+						<a href="#/completed">Completed</a>
+					</li>
+				</ul>
+				<button class="clear-completed">Clear completed</button>
+			</footer> -->
+		</section>
+	</div>
 
 	<script src="node_modules/todomvc-common/base.js"></script>
 	<script src="node_modules/vue/dist/vue.js"></script>
 	<script src="js/app.js"></script>
 
+	<script>
+		const storageLists = 'toDoMVC-vue';
+		let todoStorage = {
+			getToDos() {
+				let todos = JSON.parse(localStorage.getItem(storageLists) || '[]')
+				return todos
+			},
+			saveToDos(item) {
+				localStorage.setItem(storageLists, JSON.stringify(item))
+			}
+		};
+		new Vue({
+			el: '#app',
+			data: {
+				inputVaule: '',
+				items: todoStorage.getToDos(),
+				todoLen: 0,
+				checkedAll: false,
+				// isEditing: false,
+				visibility: 'all',
+			},
+			// computed: {
+			// 	filterItems(){
+			// 		return filters[this.visibility](this.items);
+			// 	}
+			// },
+			methods: {
+				add() {
+					let todoContent = {
+						text: this.inputVaule,
+						completed: false,
+					};
+					this.items.push(todoContent);
+					this.todoLen++;
+					this.inputVaule = '';
+				},
+				removeTodo(index) {
+					if (this.items[index].completed == false) {
+						this.todoLen--;
+					}
+					this.items.splice(index, 1);
+				},
+				changeTodo(index) {
+					// v-model綁定completed的狀態，在changeTodo函式中，需要以改變後狀態來判斷
+					if (this.items[index].completed == true) {
+						this.todoLen--;
+						// this.items[index].completed = true;
+					} else {
+						this.todoLen++;
+						// this.items[index].completed = false;
+					}
+				},
+				clearCompleted() {
+					for (let i = 0; i < this.items.length;) {
+						if (this.items[i].completed == true) {
+							// splice會改變陣列長度，所以只有在不刪除元素狀況下才會去執行行i++
+							this.items.splice(i, 1);
+						} else {
+							i++;
+						}
+					}
+					this.checkedAll = false;
+				},
+				selectAll() {
+					if (this.todoLen == 0) {
+						for (let i = 0; i < this.items.length; i++) {
+							this.items[i].completed = false;
+						}
+						this.todoLen = this.items.length;
+						this.checkedAll = false;
+					} else {
+						for (let i = 0; i < this.items.length; i++) {
+							this.items[i].completed = true;
+						}
+						this.todoLen = 0;
+						this.checkedAll = true;
+					}
+
+				},
+				// editing(index) {
+				// 	this.isEditing = true;
+				// 	// console.log('12');
+				// },
+				initTodoLen() {
+					let itemsLen = this.items.length;
+					for (let i = 0; i < itemsLen; i++) {
+						if (this.items[i].completed === false) {
+							this.todoLen++;
+						}
+					}
+				},
+			},
+			mounted() {
+				this.initTodoLen();
+			},
+			watch: {
+				items: {
+					handler(items) {
+						todoStorage.saveToDos(items);
+					},
+					deep: true // 偵聽陣列
+				},
+			}
+		});
+	</script>
 </body>
 
 </html>
