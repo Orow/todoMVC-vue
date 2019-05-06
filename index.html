@@ -1,8 +1,10 @@
 <!doctype html>
-<html lang="en" data-framework="jquery">
+<html lang="en" data-framework="vue">
 
 <head>
-	<meta charset="utf-8">
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 	<title>VueTodoMVC</title>
 	<link rel="stylesheet" href="node_modules/todomvc-common/base.css">
 	<link rel="stylesheet" href="node_modules/todomvc-app-css/index.css">
@@ -42,13 +44,16 @@
 				<span class="todo-count"><strong>{{todoLen}}</strong> item left</span>
 				<ul class="filters">
 					<li>
-						<a href="#/all" :class="(filterTask == 'all')? 'selected' : ''" @click="filterTask ='all'">All</a>
+						<a href="#/all" :class="(filterTask == 'all')? 'selected' : ''"
+							@click="filterTask ='all'">All</a>
 					</li>
 					<li>
-						<a href="#/active" :class="(filterTask == 'active')? 'selected' : ''" @click="filterTask ='active'">Active</a>
+						<a href="#/active" :class="(filterTask == 'active')? 'selected' : ''"
+							@click="filterTask ='active'">Active</a>
 					</li>
 					<li>
-						<a href="#/completed" :class="(filterTask == 'completed')? 'selected' : ''" @click="filterTask ='completed'">Completed</a>
+						<a href="#/completed" :class="(filterTask == 'completed')? 'selected' : ''"
+							@click="filterTask ='completed'">Completed</a>
 					</li>
 				</ul>
 				<button class="clear-completed" @click="clearCompleted">Clear completed</button>
