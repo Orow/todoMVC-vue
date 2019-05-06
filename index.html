@@ -15,66 +15,34 @@
 			<header class="header">
 				<h1>Orow's todos</h1>
 				<input class="new-todo" type="text" v-model="inputVaule" @keyup.enter="add"
-					placeholder="What needs to be done?" autofocus>
+					placeholder="Add to do item..." autofocus>
 			</header>
 			<section class="main">
 				<input id="toggle-all" class="toggle-all" type="checkbox" @click="selectAll">
 				<label for="toggle-all">Mark all as complete</label>
-				<ul class="todo-list">
-					<template v-for="(item, index) in items">
-						<!-- <li class="editing" v-if="isEditing">
-							<input class="edit" :value="item.text">
-						</li> -->
-						<li :class="{completed: item.completed}" @dblclick="editing(index)">
+				<ul class="todo-list" v-for="(item, index) in items" :key="index">
+					<template >
+						<li class="editing" v-if="isEditing === index">
+							<input class="edit" :value="item.text"  @click="isEditing = false">
+						</li>
+						<li :class="{completed: item.completed}"  v-else :class="isEditing">
 							<div class="view">
 								<input class="toggle" type="checkbox" v-model="item.completed"
 									@change="changeTodo(index)">
-								<label>{{item.text}}</label>
+								<label @click="isEditing = index">{{item.text}}</label>
 								<button class="destroy" @click="removeTodo(index)"></button>
 							</div>
 							<input class="edit" :value="item.text">
 						</li>
 
 					</template>
-					<!-- 靜態內容 -->
-					<!-- <li data-id="d377bcdf-cc13-40de-8dd3-deccce2769ad">
-						<div class="view">
-							<input class="toggle" type="checkbox">
-							<label>task-active</label>
-							<button class="destroy"></button>
-						</div>
-						<input class="edit" value="task-active">
-					</li>
-					<li class="completed" data-id="fa0e439f-26b0-4233-94f1-96b46f21d46d">
-						<div class="view">
-							<input class="toggle" type="checkbox" checked="">
-							<label>task-completed</label>
-							<button class="destroy"></button>
-						</div>
-						<input class="edit" value="task-completed">
-					</li> -->
 				</ul>
 			</section>
 			<footer class="footer" v-if="items != ''">
 				<span class="todo-count"><strong>{{todoLen}}</strong> item left</span>
 				<ul class="filters">
 					<li>
-						<a href="#/all" :class="{selected: visibility == 'all'}">All</a>
-					</li>
-					<li>
-						<a href="#/active" :class="{selected: visibility == 'active'}">Active</a>
-					</li>
-					<li>
-						<a href="#/completed" :class="{selected: visibility == 'completed'}">Completed</a>
-					</li>
-				</ul>
-				<button class="clear-completed" @click="clearCompleted">Clear completed</button>
-			</footer>
-			<!-- <footer class="footer">
-				<span class="todo-count"><strong>1</strong> item left</span>
-				<ul class="filters">
-					<li>
-						<a class="selected" href="#/all">All</a>
+						<a href="#/all" class="selected">All</a>
 					</li>
 					<li>
 						<a href="#/active">Active</a>
@@ -83,12 +51,12 @@
 						<a href="#/completed">Completed</a>
 					</li>
 				</ul>
-				<button class="clear-completed">Clear completed</button>
-			</footer> -->
+				<button class="clear-completed" @click="clearCompleted">Clear completed</button>
+			</footer>
 		</section>
 	</div>
 
-	<script src="node_modules/todomvc-common/base.js"></script>
+	<!-- <script src="node_modules/todomvc-common/base.js"></script> -->
 	<script src="node_modules/vue/dist/vue.js"></script>
 	<script src="js/app.js"></script>
 
@@ -110,14 +78,8 @@
 				items: todoStorage.getToDos(),
 				todoLen: 0,
 				checkedAll: false,
-				// isEditing: false,
-				visibility: 'all',
+				isEditing: false,
 			},
-			// computed: {
-			// 	filterItems(){
-			// 		return filters[this.visibility](this.items);
-			// 	}
-			// },
 			methods: {
 				add() {
 					let todoContent = {
@@ -171,10 +133,12 @@
 					}
 
 				},
-				// editing(index) {
-				// 	this.isEditing = true;
-				// 	// console.log('12');
-				// },
+				editing: function(e) {
+					console.log(e);
+					// this.isEditing = !this.isEditing;
+					// console.log(this.isEditing);
+				},
+
 				initTodoLen() {
 					let itemsLen = this.items.length;
 					for (let i = 0; i < itemsLen; i++) {
