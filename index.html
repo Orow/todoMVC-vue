@@ -20,19 +20,19 @@
 			<section class="main">
 				<input id="toggle-all" class="toggle-all" type="checkbox" @click="selectAll">
 				<label for="toggle-all">Mark all as complete</label>
-				<ul class="todo-list" v-for="(item, index) in items" :key="index">
-					<template >
-						<li class="editing" v-if="isEditing === index">
-							<input class="edit" :value="item.text"  @click="isEditing = false">
+				<ul class="todo-list">
+					<template v-for="(item, index) in filterItems">
+						<li class="editing" v-if="editedItem !== null && editedItem.index === index">
+							<input class="edit" v-model="item.text" @keyup.enter="editFinished(item)"
+								@keyup.esc="cancelEdit(item)" v-focus="true">
 						</li>
-						<li :class="{completed: item.completed}"  v-else :class="isEditing">
+						<li :class="{completed: item.completed}" v-else>
 							<div class="view">
 								<input class="toggle" type="checkbox" v-model="item.completed"
 									@change="changeTodo(index)">
-								<label @click="isEditing = index">{{item.text}}</label>
+								<label @click="editItem(item, index)">{{item.text}}</label>
 								<button class="destroy" @click="removeTodo(index)"></button>
 							</div>
-							<input class="edit" :value="item.text">
 						</li>
 
 					</template>
@@ -42,13 +42,13 @@
 				<span class="todo-count"><strong>{{todoLen}}</strong> item left</span>
 				<ul class="filters">
 					<li>
-						<a href="#/all" class="selected">All</a>
+						<a href="#/all" :class="(filterTask == 'all')? 'selected' : ''" @click="filterTask ='all'">All</a>
 					</li>
 					<li>
-						<a href="#/active">Active</a>
+						<a href="#/active" :class="(filterTask == 'active')? 'selected' : ''" @click="filterTask ='active'">Active</a>
 					</li>
 					<li>
-						<a href="#/completed">Completed</a>
+						<a href="#/completed" :class="(filterTask == 'completed')? 'selected' : ''" @click="filterTask ='completed'">Completed</a>
 					</li>
 				</ul>
 				<button class="clear-completed" @click="clearCompleted">Clear completed</button>
@@ -56,10 +56,8 @@
 		</section>
 	</div>
 
-	<!-- <script src="node_modules/todomvc-common/base.js"></script> -->
 	<script src="node_modules/vue/dist/vue.js"></script>
 	<script src="js/app.js"></script>
-
 	<script>
 		const storageLists = 'toDoMVC-vue';
 		let todoStorage = {
@@ -77,8 +75,21 @@
 				inputVaule: '',
 				items: todoStorage.getToDos(),
 				todoLen: 0,
-				checkedAll: false,
-				isEditing: false,
+				editedItem: null, // 單一項目編輯的暫存，編輯的v-if判斷
+				filterTask: 'all', // 用來篩選項目，預設為顯示全部
+			},
+			// 計算屬性，判定篩選項目
+			computed: {
+				filterItems() {
+					if (this.filterTask === 'active') {
+						return this.items.filter(item => !item.completed)
+					} else if (this.filterTask === 'completed') {
+						return this.items.filter(item => item.completed)
+					} else {
+						// 剩下就是'all'
+						return this.items
+					}
+				},
 			},
 			methods: {
 				add() {
@@ -115,7 +126,6 @@
 							i++;
 						}
 					}
-					this.checkedAll = false;
 				},
 				selectAll() {
 					if (this.todoLen == 0) {
@@ -123,22 +133,32 @@
 							this.items[i].completed = false;
 						}
 						this.todoLen = this.items.length;
-						this.checkedAll = false;
 					} else {
 						for (let i = 0; i < this.items.length; i++) {
 							this.items[i].completed = true;
 						}
 						this.todoLen = 0;
-						this.checkedAll = true;
 					}
-
 				},
-				editing: function(e) {
-					console.log(e);
-					// this.isEditing = !this.isEditing;
-					// console.log(this.isEditing);
+				// editedItem是用來點擊後暫存編輯前的資料，不直接引入項目名稱是因為會連動，所以單純保存資料
+				editItem(item, index) {
+					// 多了一個index是要在html中用來判斷v-if顯示點擊的單一項目來編輯
+					this.editedItem = {
+						index: index,
+						text: item.text,
+						completed: item.completed
+					};
 				},
-
+				// 編輯時按下enter，會直接清空暫存資料，v-if會等false就不顯示，內容直接綁定v-model
+				editFinished(item) {
+					this.editedItem = null
+				},
+				// 編輯時在按下enter前要取消，按下esc會執行
+				// 因為v-model綁定輸入值，所以要從暫存區取回資料
+				cancelEdit(item) {
+					item.text = this.editedItem.text;
+					this.editedItem = null;
+				},
 				initTodoLen() {
 					let itemsLen = this.items.length;
 					for (let i = 0; i < itemsLen; i++) {
@@ -158,7 +178,15 @@
 					},
 					deep: true // 偵聽陣列
 				},
-			}
+			},
+			// auto focus，下方寫完後，在html中需要自動focus的元素加上v-focus="true"
+			directives: {
+				focus: {
+					inserted(el) {
+						el.focus()
+					}
+				}
+			},
 		});
 	</script>
 </body>
