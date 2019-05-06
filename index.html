@@ -31,7 +31,7 @@
 							<div class="view">
 								<input class="toggle" type="checkbox" v-model="item.completed"
 									@change="changeTodo(index)">
-								<label @dblclick="editItem(item, index)">{{item.text}}</label>
+								<label @click="editItem(item, index)">{{item.text}}</label>
 								<button class="destroy" @click="removeTodo(index)"></button>
 							</div>
 						</li>
